@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities;\
+
+
+.markdown-content {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  color: #333;
+}
+
+.markdown-content pre code {
+  background-color: #f4f4f4;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  color: #333; /* Adjust the text color if needed */
+}
+
+
+.markdown-content code:not([class]) {
+  background-color: #f4f4f4;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  color: #333; /* Adjust the text color if needed */
+}
+
+

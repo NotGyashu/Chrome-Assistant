@@ -1,21 +1,24 @@
-import { generateEmbedding, loadEmbeddingModel } from "./Embedding.js";
+import {getembdedtext} from "./Embedding.js";
 import { generateAi, getAIModel } from "./getAiModal.js";
 import { promptResponse } from "./promptsResponse.js";
-// prompt  function
-export function prompt(message, sendResponse, conversationMemory) {
-  console.log("prompt received in background", message.prompt);
- promptResponse(message.prompt)
-    .then((response) => {
-      console.log("prompt response recieved in background", response);
+import {conversationMemory, ready} from "../../public/background.js";
+import { marked } from "marked";
+import { htmlToText } from "html-to-text";
+function markdownToPlainText(markdown) {
+  // Convert Markdown to HTML
+  const html = marked(markdown);
 
-      if (!response.ok) {
-        throw new Error("prompt response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("prompt dta recieved in background", data);
-      generateEmbedding(data.data, embeddingModel) // Assuming 'data.response_text' holds the AI's response
+  // Convert HTML to plain text
+  return htmlToText(html);
+}
+
+// prompt  function
+export function prompt(message, sendResponse) {
+  //console.log("prompt received in background", message); 
+ promptResponse(message).then((data) => {
+     // console.log("prompt res ", data);
+     const plainText = markdownToPlainText(data.data);
+      getembdedtext(plainText) // Assuming 'data.response_text' holds the AI's response
         .then((responseEmbedding) => {
           // 2. Update conversationMemory:
           const messageId = Date.now(); // Or generate a unique ID
@@ -24,7 +27,7 @@ export function prompt(message, sendResponse, conversationMemory) {
             embedding: responseEmbedding,
           };
         });
-      sendResponse(data);
+    
     })
     .catch((error) => {
       console.error("Error in fetching prompt:", error);
@@ -32,56 +35,15 @@ export function prompt(message, sendResponse, conversationMemory) {
     });
 }
 
-//summarizePage function
-export function summarizePage() {
-  chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-    if (tabs[0]) {
-      const currentTabUrl = tabs[0].url;
-      fetch("http://localhost:3000/server/background/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: currentTabUrl }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          sendResponse(data);
-        })
-        .catch((error) => {
-          console.error("Error in fetching summary:", error);
-          sendResponse({ error: error.message });
-        });
-    }
-  });
-}
 
 //popupMounted function
 export async function popupMounted(
-  extractedData,
+  
   sendResponse,
-  embeddingModel
+  
 ) {
   try {
-    const tabs = await new Promise((resolve, reject) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(tabs);
-        }
-      });
-    });
-
-    if (tabs[0]) {
-      await injectScripts(tabs[0].id); 
-      const currentTabUrl = tabs[0].url;
-      console.log(currentTabUrl);
+    
 
       const apiKey = await fetchApiKey();
       console.log(apiKey);
@@ -89,11 +51,8 @@ export async function popupMounted(
       try {
         const response = await generateAi(apiKey);
         if (response.success) {
-          console.log("AI initialized successfully");
-
-          const model = loadEmbeddingModel();
-          embeddingModel = model;
-          console.log("Embedding model loaded and ready!");
+          //console.log("AI initialized successfully");
+         
           sendResponse({ status: 200, message: "success" });
         } else {
           sendResponse({
@@ -108,14 +67,13 @@ export async function popupMounted(
           message: "Error initializing AI model",
         });
       }
-    } else {
-      sendResponse({ status: 500, message: "No active tab found" });
-    }
+
   } catch (error) {
     console.error("Error in injecting scripts:", error);
     sendResponse({ status: 500, message: "Error injecting scripts" });
   }
 }
+
 
 // injectScripts function
 async function injectScripts(tabId) {
