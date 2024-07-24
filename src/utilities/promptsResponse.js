@@ -1,20 +1,46 @@
 import { getAIModel } from "./getAiModal.js";
 
-
 async function promptResponse(prompt) {
-  console.log("prompt controller", prompt);
   try {
     const model = getAIModel();
-    const prompt = prompt;
-    const result = await model.generateContent(prompt);
+    if (!model) {
+      throw new Error("AI model not initialized");
+    }
 
-    // Assuming result.response is a valid object and you need to extract text
-    const response = await result.response; // If result.response is a promise, await it
-    res.status(200).json({ data: response.text() }); // Corrected to use `status` instead of `Status`
-    console.log(response.text());
+    // Call generateContentStream and handle its result
+    const result = await model.generateContentStream(prompt);
+
+    // Ensure result.stream is an async iterable
+    if (
+      !result ||
+      typeof result.stream !== "object" ||
+      typeof result.stream[Symbol.asyncIterator] !== "function"
+    ) {
+      throw new Error("Unexpected result format");
+    }
+
+    let res = "";
+
+    // Send each chunk as it arrives
+    for await (const chunk of result.stream) {
+      const chunkText = await chunk.text();
+      res += chunkText;
+      console.log("Chunk:", chunkText);
+
+      // Send each chunk to the content script
+      chrome.runtime.sendMessage({ type: "stream", data: chunkText });
+    }
+
+    // Ensure the final chunk is sent before signaling end
+  setTimeout(() => {
+    chrome.runtime.sendMessage({ type: "streamEnd" });
+    console.log("Final response:", res);
+  }, 500);
+   return { data: res, ok: true };
   } catch (err) {
     console.log("Error in getting response of prompt:", err);
-    res.status(500).send("Internal Server Error"); // Send a proper error response
+    chrome.runtime.sendMessage({ type: "error", message: "gemini is dead" });
+    return { data: null, ok: false };
   }
 }
 

@@ -66,14 +66,14 @@ const Popup = () => {
   
 
   return (
-    <div className="bg-black text-white  w-[700px] max-h-[600px]  overflow-hidden">
+    <div className=" w-[700px] font-sans max-h-[600px]  overflow-hidden">
       {!ready ? (
-        <div className="flex justify-center items-center m-auto">
+        <div className="flex justify-center items-center m-auto ">
           {initialMessage}
         </div>
       ) : (
         <div className=" flex flex-col h-full w-full  items-center">
-          <div className="w-full  flex justify-between items-center p-2">
+          <div className="w-full  flex justify-between items-center p-2 text-sm">
             <div className="text-xl">
               <span>Hii [Name]! </span>
               <span>How i can help u with web page</span>
