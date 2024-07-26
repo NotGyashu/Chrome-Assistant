@@ -4,6 +4,24 @@ import { promptResponse } from "./promptsResponse.js";
 import {conversationMemory, ready} from "../../public/background.js";
 import { marked } from "marked";
 import { htmlToText } from "html-to-text";
+
+
+
+export const getTab = async () => {
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true,
+    });
+
+    // Return the tab object if it exists, otherwise return null
+    return tab || null;
+  } catch (error) {
+    console.error("Error fetching the active tab:", error);
+    return null;
+  }
+};
+
 function markdownToPlainText(markdown) {
   // Convert Markdown to HTML
   const html = marked(markdown);
@@ -14,9 +32,9 @@ function markdownToPlainText(markdown) {
 
 // prompt  function
 export function prompt(message, sendResponse) {
-  //console.log("prompt received in background", message); 
+
  promptResponse(message).then((data) => {
-     // console.log("prompt res ", data);
+   
      const plainText = markdownToPlainText(data.data);
       getembdedtext(plainText) // Assuming 'data.response_text' holds the AI's response
         .then((responseEmbedding) => {
@@ -46,7 +64,6 @@ export async function popupMounted(
     
 
       const apiKey = await fetchApiKey();
-      console.log(apiKey);
 
       try {
         const response = await generateAi(apiKey);
@@ -96,7 +113,7 @@ async function injectScripts(tabId) {
 }
 
 // Function to fetch the API key from the extension
-async function fetchApiKey() {
+export async function fetchApiKey() {
   try {
     const response = await fetch(chrome.runtime.getURL("/key.js"));
     const text = await response.text();

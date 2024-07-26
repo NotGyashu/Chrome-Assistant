@@ -1,40 +1,27 @@
-import {
-  popupMounted,
-  prompt,
-  summarizePage,
-} from "../src/utilities/chromeApiUtilities";
-import {
-  enhancedPrompt,
+import { popupMounted, prompt } from "../src/utilities/chromeApiUtilities";
+import { promptResponse } from "../src/utilities/promptsResponse";
 
-} from "../src/utilities/Embedding";
+export let conversationMemory = [];
 
-let extractedData = null;
-
-export let conversationMemory = {};
-
-
-chrome.runtime.onInstalled.addListener(async () => {
-  console.log("Extension installed or updated.");
-  
-});
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "popupMounted") {
-    popupMounted( sendResponse);
+    popupMounted(sendResponse);
     return true;
   } else if (message.type === "prompt") {
-    enhancedPrompt(message.prompt)
-      .then((response) => {
-       // console.log("enhanced prompt response recieved in background", response);
-  prompt(response.prompt, sendResponse);
-       
-      })
-      .catch((error) => {
-        console.error("Error in enhancing prompt:", error);
-        sendResponse({ error: error.message });
-      });
-
-
+    promptResponse(message.prompt);
+  } else if (message.type === "open_side_panel") {
+    chrome.windows.getCurrent({ populate: true }, (window) => {
+      chrome.sidePanel.open(
+        {
+          windowId: window.id,
+          tabId: window.tabs[0].id,
+        },
+        () => {
+          console.log("Side panel opened.");
+        }
+      );
+    });
   }
 });

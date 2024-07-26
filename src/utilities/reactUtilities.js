@@ -1,14 +1,16 @@
+import { conversationMemory } from "../../public/background";
+
 export const handleClose = () => {
-  //unmount the extension
-  console.log("clicked");
-  window.alert("hi");
+chrome.storage.local.clear(() => {
+  console.log("All data cleared from local storage.");
+});
+
+
+window.close();
+
 };
 
-export const Minimize = () => {
-  //unmount the extension
-};
 
-export const openWithSidepanel = () => {
-  //unmount the extension
-};
+
+
 

@@ -16,3 +16,4 @@ const markdownToPlainText = (markdown) => {
   tempDiv.innerHTML = html;
   return tempDiv.textContent || tempDiv.innerText || "";
 };
+

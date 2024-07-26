@@ -31,6 +31,14 @@ const MarkdownRenderer = ({ content }) => {
         </code>
       );
     },
+    a({ node, ...props }) {
+      // Render links with target="_blank" and rel="noopener noreferrer"
+      return (
+        <a {...props} target="_blank" rel="noopener noreferrer">
+          {props.children}
+        </a>
+      );
+    },
   };
 
   return (
