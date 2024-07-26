@@ -1,3 +1,5 @@
+import { fetchApiKey } from "./chromeApiUtilities";
+
 const {
   GoogleGenerativeAI,
   HarmCategory,
@@ -57,7 +59,10 @@ async function generateAi(apiKey) {
 
 function getAIModel() {
   if (!aiModel) {
-    throw new Error("AI model not initialized!");
+    const apikey = fetchApiKey();
+    generateAi(apikey);
+    return aiModel;
+    
   }
   return aiModel;
 }

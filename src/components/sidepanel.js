@@ -3,12 +3,11 @@ import Prompt from "./Prompt";
 import { handleClose, Minimize } from "../utilities/reactUtilities";
 import { conversationMemory } from "../../public/background";
 
-const Popup = () => {
+const SidePanel = () => {
   const [ready, setReady] = useState(false);
   const [initialMessage, setInitialMessage] = useState("Loading...");
 
   useEffect(() => {
-
     chrome.runtime.sendMessage({ type: "popupMounted" }, (response) => {
       if (response && response.status === 200) {
         setReady(true);
@@ -44,14 +43,14 @@ const Popup = () => {
         <div className="flex justify-center items-center m-auto">
           {initialMessage}
         </div>
-      ) : ( 
-        <div className="  w-full py-1">
+      ) : (
+        <div className="flex flex-col h-full w-full overflow-scroll py-1  custom-scrollbar">
           <div className="text-xs flex gap-3 cursor-pointer absolute top-2 right-3">
             <div onClick={handleOpenSidePanel}>ops</div>
             <div onClick={handleClose}>X</div>
           </div>
-        
-          <div className="w-full max-h-[300px] flex flex-col  overflow-scroll no-scrollbar">
+
+          <div className="w-full h-full flex-grow  ">
             <Prompt />
           </div>
         </div>
@@ -60,4 +59,4 @@ const Popup = () => {
   );
 };
 
-export default Popup;
+export default SidePanel;

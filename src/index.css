@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;\
-
+@tailwind utilities;
 
 .markdown-content {
   font-family: Arial, sans-serif;
@@ -9,23 +8,81 @@
   padding: 1rem;
 }
 
-.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
   color: #333;
 }
 
+//* Reset inline styles that might be affecting your pre code block */
+.markdown-content pre {
+  background-color: #212529 !important; /* Black background */
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  color: #f8f9fb !important ;/* White text color */
+  overflow: auto; /* Ensure scrolling if content overflows */
+  margin: 0; /* Remove default margins if any */
+}
+
+.markdown-content pre > div {
+  background-color: #212529 !important; 
+  color: #f8f9fb !important;/* Override yellow background on the inner div */
+}
+
 .markdown-content pre code {
-  background-color: #f4f4f4;
+  background-color: transparent !important; /* Match background color of pre */
+  padding: 0;
+  border-radius: 4px;
+  color: #f8f9fb !important;/* White text color */
+}
+
+.markdown-content code {
+  background-color: #adb5bd; /* Different background color for code outside pre */
   padding: 0.2em 0.4em;
   border-radius: 4px;
-  color: #333; /* Adjust the text color if needed */
+  color: #f8f9fb; /* Text color */
 }
 
 
-.markdown-content code:not([class]) {
-  background-color: #f4f4f4;
-  padding: 0.2em 0.4em;
-  border-radius: 4px;
-  color: #333; /* Adjust the text color if needed */
+.markdown-content ul,
+.markdown-content ol {
+  margin: 1rem 0;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content a {
+  color: #1a73e8; /* Google blue */
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #666;
+  font-style: italic;
 }
 
 
+ .custom-scrollbar::-webkit-scrollbar{
+        width: 4px;
+    }
+    .no-scrollbar::-webkit-scrollbar{
+       display:none
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb{
+        background-color: #bc72c8;
+        width: 5px;
+        border-radius: 10px;
+    }
+  

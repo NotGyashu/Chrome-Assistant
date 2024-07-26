@@ -1,24 +1,29 @@
 {
   "manifest_version": 3,
   "name": "chrome-assistant",
+  "version": "1.0",
+  "description": "This extension will help you to do anything on chrome",
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
     "128": "icon.png"
-  },
-  "version": "1.0",
-  "description": "This extension will help you to do anything on chrome",
+  },  
   "permissions": [
     "activeTab",
     "scripting",
     "declarativeContent",
     "tabs",
-    "storage"
+    "storage",
+    "sidePanel",
+    "contextMenus"
   ],
+  "side_panel": {
+    "default_path": "sidePanel.html"
+  },
   "commands": {
     "start": {
       "description": "Run the Extension",
-      "global":true,
+      "global": true,
       "suggested_key": {
         "default": "Ctrl+Shift+0",
         "mac": "Command+Shift+0"
@@ -29,10 +34,8 @@
     "default_popup": "index.html"
   },
   "host_permissions": ["http://localhost:3000/*"],
-
   "background": {
-    "service_worker": "/background.js",
+    "service_worker": "background.js",
     "type": "module"
   }
 }
-
