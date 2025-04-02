@@ -1,26 +1,38 @@
-import React from 'react'
+import React from 'react';
+import { useTheme } from "./ThemeContext";
 
 const Welcome = () => {
+  const { isDarkMode } = useTheme();
+  const suggestions = [
+    "Summarize this page",
+    "Write a cover letter",
+    "Explain this concept",
+    "Help me debug this code"
+  ];
+
   return (
- 
-            <div className="flex flex-col flex-grow  items-center m-1">
-              <div className="w-full flex justify-between items-center p-2 text-sm">
-                <div className="text-xl">
-                  <span>Hii! </span>
-                  <span>How can I help you Today?</span>
-                </div>
-              </div>
-              <div className="flex w-full gap-2 rounded-md p-2">
-                <div className="p-2 border  rounded-lg">Summarize the help</div>
-                <div className="p-2 border  rounded-lg">
-                 write a cover letter
-                </div>
-                <div className="p-2 border  rounded-lg">Make Maths question paper of class 9</div>
-              </div>
-            </div>
-         
-  )
-}
+    <div className="flex flex-col gap-6 p-4">
+      <div className={`text-xl font-bold ${
+        isDarkMode ? 'text-theme-dark-accent' : 'text-theme-light-primary'
+      }`}>
+        How can I help you today?
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {suggestions.map((suggestion, index) => (
+          <div
+            key={index}
+            className={`p-3 rounded-lg cursor-pointer transition-all ${
+              isDarkMode
+                ? 'bg-theme-dark-secondary hover:bg-theme-dark-primary'
+                : 'bg-blue-50 hover:bg-theme-light-primary hover:text-white'
+            }`}
+          >
+            {suggestion}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-
-export default Welcome
+export default Welcome; 

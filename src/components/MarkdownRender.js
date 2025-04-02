@@ -2,47 +2,39 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useTheme } from "./ThemeContext";
 
 const MarkdownRenderer = ({ content }) => {
+  const { isDarkMode } = useTheme();
+
   const components = {
     code({ node, inline, className, children, ...props }) {
-      const isPreTag = node.parent && node.parent.tagName === "pre";
-      const match = /language-(\w+)/.exec(className || "");
-
-      if (!inline && match) {
-        // Code blocks inside `pre` tags will be handled by `SyntaxHighlighter`
-        return (
-          <SyntaxHighlighter
-            style={solarizedlight}
-            language={match[1]}
-            PreTag="div"
-            {...props}
-          >
-            {String(children).replace(/\n$/, "")}
-          </SyntaxHighlighter>
-        );
-      }
-
-      // Code blocks not inside `pre` tags
-      return (
-        <code className={isPreTag ? "" : "inline-code"} {...props}>
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <SyntaxHighlighter
+          style={isDarkMode ? oneDark : oneLight}
+          language={match[1]}
+          PreTag="div"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      ) : (
+        <code className={`rounded px-1.5 py-0.5 text-sm ${
+          isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-800'
+        }`} {...props}>
           {children}
         </code>
       );
     },
     a({ node, ...props }) {
-      // Render links with target="_blank" and rel="noopener noreferrer"
-      return (
-        <a {...props} target="_blank" rel="noopener noreferrer">
-          {props.children}
-        </a>
-      );
+      return <a target="_blank" rel="noopener noreferrer" {...props} />;
     },
   };
 
   return (
-    <div className="markdown-content">
+    <div className={`markdown-content ${isDarkMode ? 'dark' : ''}`}>
       <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
         {content}
       </ReactMarkdown>

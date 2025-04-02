@@ -1,27 +1,40 @@
-import { popupMounted, prompt } from "../src/utilities/chromeApiUtilities";
-import { promptResponse } from "../src/utilities/promptsResponse";
-
-export let conversationMemory = [];
-
-
+// background.js
+let conversationMemory = [];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "popupMounted") {
-    popupMounted(sendResponse);
-    return true;
-  } else if (message.type === "prompt") {
-    promptResponse(message.prompt);
-  } else if (message.type === "open_side_panel") {
-    chrome.windows.getCurrent({ populate: true }, (window) => {
-      chrome.sidePanel.open(
-        {
+  switch (message.type) {
+    case "popupMounted":
+      sendResponse({ status: 200, message: "Popup ready" });
+      return true; // Important for async response
+    
+    case "prompt":
+    case "gemini is dead":
+      promptResponse(message.prompt)
+        .then(response => {
+          chrome.runtime.sendMessage({
+            type: "stream",
+            data: response
+          });
+        })
+        .catch(error => {
+          chrome.runtime.sendMessage({
+            type: "error",
+            message: error.message
+          });
+        });
+      break;
+      
+    case "open_side_panel":
+    case "expand_panel":
+      chrome.windows.getCurrent({ populate: true }, (window) => {
+        chrome.sidePanel.open({
           windowId: window.id,
-          tabId: window.tabs[0].id,
-        },
-        () => {
-          console.log("Side panel opened.");
-        }
-      );
-    });
+          tabId: window.tabs[0].id
+        });
+      });
+      break;
   }
+  
+  // Return false if not handling the message
+  return false;
 });
