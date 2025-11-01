@@ -17,6 +17,14 @@
     "sidePanel",
     "contextMenus"
   ],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["floatingWidget.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "side_panel": {
     "default_path": "sidePanel.html"
   },
@@ -33,7 +41,6 @@
   "action": {
     "default_popup": "index.html"
   },
-  "host_permissions": ["http://localhost:3000/*"],
   "background": {
     "service_worker": "background.js",
     "type": "module"
