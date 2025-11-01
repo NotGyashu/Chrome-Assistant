@@ -1,9 +1,10 @@
 import {getembdedtext} from "./Embedding.js";
 import { generateAi, getAIModel } from "./getAiModal.js";
 import { promptResponse } from "./promptsResponse.js";
-import {conversationMemory, ready} from "../../public/background.js";
 import { marked } from "marked";
 import { htmlToText } from "html-to-text";
+import { getGeminiApiKey } from "./apiKeyStorage.js";
+import { saveConversationMessage } from "./conversationMemory.js";
 
 
 
@@ -30,27 +31,48 @@ function markdownToPlainText(markdown) {
   return htmlToText(html);
 }
 
-// prompt  function
-export function prompt(message, sendResponse) {
-
- promptResponse(message).then((data) => {
-   
-     const plainText = markdownToPlainText(data.data);
-      getembdedtext(plainText) // Assuming 'data.response_text' holds the AI's response
-        .then((responseEmbedding) => {
-          // 2. Update conversationMemory:
-          const messageId = Date.now(); // Or generate a unique ID
-          conversationMemory[messageId] = {
-            text: data.data,
-            embedding: responseEmbedding,
-          };
-        });
+// prompt function - fixed async/await pattern
+export async function prompt(message, sendResponse) {
+  try {
+    const data = await promptResponse(message);
     
-    })
-    .catch((error) => {
-      console.error("Error in fetching prompt:", error);
+    // Convert markdown to plain text for embedding
+    const plainText = markdownToPlainText(data.data);
+    
+    try {
+      // Generate embedding for the response
+      const responseEmbedding = await getembdedtext(plainText);
+      
+      // Save conversation with embedding
+      await saveConversationMessage(message, data.data, responseEmbedding);
+      console.log('Conversation saved with embedding');
+    } catch (embeddingError) {
+      console.error('Error generating embedding:', embeddingError);
+      
+      // Save without embedding if embedding fails
+      try {
+        await saveConversationMessage(message, data.data);
+        console.log('Conversation saved without embedding');
+      } catch (saveError) {
+        console.error('Error saving conversation:', saveError);
+      }
+    }
+    
+    // Send response back
+    if (sendResponse) {
+      sendResponse({ success: true, data: data.data });
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error in fetching prompt:", error);
+    
+    if (sendResponse) {
       sendResponse({ error: error.message });
-    });
+    }
+    
+    throw error;
+  }
 }
 
 
@@ -63,7 +85,15 @@ export async function popupMounted(
   try {
     
 
-      const apiKey = await fetchApiKey();
+      const apiKey = await getGeminiApiKey();
+
+      if (!apiKey) {
+        sendResponse({
+          status: 401,
+          message: "API key not configured. Please set up your API keys.",
+        });
+        return;
+      }
 
       try {
         const response = await generateAi(apiKey);
@@ -86,8 +116,8 @@ export async function popupMounted(
       }
 
   } catch (error) {
-    console.error("Error in injecting scripts:", error);
-    sendResponse({ status: 500, message: "Error injecting scripts" });
+    console.error("Error in initializing:", error);
+    sendResponse({ status: 500, message: "Error initializing extension" });
   }
 }
 
@@ -110,18 +140,4 @@ async function injectScripts(tabId) {
       }
     );
   });
-}
-
-// Function to fetch the API key from the extension
-export async function fetchApiKey() {
-  try {
-    const response = await fetch(chrome.runtime.getURL("/key.js"));
-    const text = await response.text();
-    const match = text.match(/const\s+codeKey\s*=\s*['"]([^'"]+)['"]/i);
-
-    return match ? match[1] : null;
-  } catch (error) {
-    console.error("Error in fetching API key:", error);
-    throw error;
-  }
 }

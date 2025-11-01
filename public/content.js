@@ -1,19 +1,20 @@
-console.log("content script loaded");
+/**
+ * Content Script - Currently unused but ready for future features
+ * 
+ * Potential uses:
+ * - Page summarization
+ * - Text selection assistance
+ * - Context menu integration
+ */
 
-import { marked } from "marked";
+// Currently disabled - no functionality needed
+console.log("Content script ready (inactive)");
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "PROCESS_MARKDOWN") {
-    const plainText = markdownToPlainText(message.markdown);
-    sendResponse({ plainText });
-  }
-});
-
-
-const markdownToPlainText = (markdown) => {
-  const html = marked(markdown);
-  const tempDiv = window.document.createElement("div");
-  tempDiv.innerHTML = html;
-  return tempDiv.textContent || tempDiv.innerText || "";
-};
-
+// Future implementation placeholder
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.type === "SUMMARIZE_PAGE") {
+//     const pageText = document.body.innerText;
+//     sendResponse({ text: pageText });
+//   }
+//   return true;
+// });

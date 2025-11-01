@@ -1,54 +1,69 @@
 import React, { useState, useEffect } from "react";
 import Prompt from "./Prompt";
+import SetupScreen from "./SetupScreen";
+import Settings from "./Settings";
 import { handleClose } from "../utilities/reactUtilities";
-import { conversationMemory } from "../../public/background";
 import { useTheme } from "./ThemeContext";
+import { areKeysConfigured, getGeminiApiKey } from "../utilities/apiKeyStorage";
+import { generateAi } from "../utilities/getAiModal";
 
 const Popup = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const [ready, setReady] = useState(false);
+  const [keysConfigured, setKeysConfigured] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [initialMessage, setInitialMessage] = useState("Loading...");
 
   useEffect(() => {
-    // Message handler for initialization response
-    const handleMessage = (message, sender, sendResponse) => {
-      if (message.type === "popupReady") {
-        setReady(true);
-        sendResponse({ status: "done" });
-        return true; // Keep the message channel open for response
-      }
-      return false;
-    };
-
-    chrome.runtime.onMessage.addListener(handleMessage);
-
-    // Initialize the popup
-    chrome.runtime.sendMessage(
-      { type: "popupMounted" },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          console.error("Extension error:", chrome.runtime.lastError);
-          setInitialMessage("Connection error");
-          return;
-        }
-        if (response?.status === 200) {
-          setReady(true);
-        } else {
-          setInitialMessage(response?.message || "Initialization failed");
-        }
-      }
-    );
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
+    checkApiKeys();
   }, []);
+
+  const checkApiKeys = async () => {
+    try {
+      const configured = await areKeysConfigured();
+      setKeysConfigured(configured);
+      
+      if (configured) {
+        // Keys exist, initialize AI
+        await initializeAI();
+      } else {
+        // No keys, show setup screen
+        setInitialMessage("Setup required");
+      }
+    } catch (error) {
+      console.error("Error checking API keys:", error);
+      setInitialMessage("Error checking configuration");
+    }
+  };
+
+  const initializeAI = async () => {
+    try {
+      const apiKey = await getGeminiApiKey();
+      if (!apiKey) {
+        setKeysConfigured(false);
+        return;
+      }
+
+      const response = await generateAi(apiKey);
+      if (response.success) {
+        setReady(true);
+      } else {
+        setInitialMessage("Error initializing AI model");
+        console.error("AI initialization failed:", response.message);
+      }
+    } catch (error) {
+      console.error("Error initializing AI:", error);
+      setInitialMessage("Error initializing AI model");
+    }
+  };
+
+  const handleSetupComplete = async () => {
+    // After setup, check keys and initialize
+    await checkApiKeys();
+  };
 
   const handleOpenSidePanel = async () => {
     try {
-      await chrome.storage.local.set({
-        sidePanelData: Array.isArray(conversationMemory) ? conversationMemory : []
-      });
       chrome.runtime.sendMessage({ type: "open_side_panel" });
       window.close();
     } catch (error) {
@@ -56,6 +71,17 @@ const Popup = () => {
     }
   };
 
+  // Show setup screen if keys not configured
+  if (!keysConfigured) {
+    return <SetupScreen onSetupComplete={handleSetupComplete} />;
+  }
+
+  // Show settings if requested
+  if (showSettings) {
+    return <Settings onBack={() => setShowSettings(false)} />;
+  }
+
+  // Show loading state
   if (!ready) {
     return (
       <div className={`flex justify-center items-center h-full ${
@@ -70,6 +96,7 @@ const Popup = () => {
     );
   }
 
+  // Show main app
   return (
     <div className={`w-full h-full flex flex-col ${
       isDarkMode 
@@ -87,6 +114,14 @@ const Popup = () => {
           {isDarkMode ? '☀️ Light' : '🌙 Dark'}
         </button>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            ⚙️ Settings
+          </button>
           <button
             onClick={handleOpenSidePanel}
             className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"

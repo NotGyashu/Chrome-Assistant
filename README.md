@@ -132,7 +132,9 @@ Chrome-Assistant/
 - **Node.js** (v14 or higher)
 - **npm** or **yarn**
 - **Google Chrome** browser
-- **Gemini API Key** ([Get it here](https://makersuite.google.com/app/apikey))
+- **Your own API keys** (you'll be prompted to enter them on first run)
+  - **Gemini API Key** - [Get it here](https://makersuite.google.com/app/apikey)
+  - **HuggingFace API Key** - [Get it here](https://huggingface.co/settings/tokens)
 
 ### Installation Steps
 
@@ -147,29 +149,32 @@ Chrome-Assistant/
    npm install
    ```
 
-3. **Configure API Key**
-   
-   Create a `public/key.js` file with your Gemini API key:
-   ```javascript
-   const codeKey = "YOUR_GEMINI_API_KEY_HERE";
-   ```
-   
-   > ⚠️ **Security Note**: Never commit `key.js` to version control. It's already in `.gitignore`.
-
-4. **Build the extension**
+3. **Build the extension**
    ```bash
    npm run build
    ```
    
    This creates a production build in the `dist/` directory.
 
-5. **Load the extension in Chrome**
+4. **Load the extension in Chrome**
    
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable **Developer mode** (toggle in top-right corner)
    - Click **Load unpacked**
    - Select the `dist/` folder from your project directory
    - The extension should now appear in your extensions list
+
+5. **Setup your API keys (First Run Only)**
+   
+   - Click the extension icon or use the keyboard shortcut (Ctrl+Shift+0)
+   - You'll see a setup screen requesting your API keys
+   - Enter your Gemini API key (starts with "AI")
+   - Enter your HuggingFace API key (starts with "hf_")
+   - Click "Save and Continue"
+   - Your keys are stored securely in Chrome's encrypted storage
+   - **You only need to do this once** - keys sync across your devices
+
+> ⚠️ **Security Note**: Your API keys are stored locally in your browser using Chrome's secure storage. They are never sent to our servers or shared with third parties. Only you have access to your keys.
 
 ## 🎮 How to Run the Project
 
@@ -206,20 +211,51 @@ Generates optimized production files in `dist/` directory.
    - Press Enter or click the send button (➤)
    - Watch as AI responses stream in real-time
 
-4. **Theme Toggle**
+4. **Managing Your API Keys**
+   - Click the "⚙️ Settings" button in the header
+   - Update your Gemini or HuggingFace API keys
+   - Clear keys if needed (will require re-entering on next use)
+
+5. **Theme Toggle**
    - Click "☀️ Light" or "🌙 Dark" button to switch themes
    - Theme preference is saved locally
 
 ## ⚙️ Configuration
 
+### API Key Management
+
+The extension requires two API keys to function:
+
+1. **Gemini API Key** (for AI responses)
+   - Get it from: https://makersuite.google.com/app/apikey
+   - Free tier available with generous quotas
+   
+2. **HuggingFace API Key** (for text embeddings)
+   - Get it from: https://huggingface.co/settings/tokens
+   - Free tier available
+
+**First-Time Setup:**
+- On first launch, you'll see a setup screen
+- Enter both API keys
+- Keys are validated before saving
+- Stored securely in Chrome's encrypted storage
+- Synced across your Chrome profile
+
+**Updating Keys:**
+- Click the ⚙️ Settings button
+- Update either or both keys
+- Changes take effect immediately
+
+**Security Features:**
+- ✅ Keys stored using Chrome's secure storage API
+- ✅ Keys encrypted by Chrome
+- ✅ Keys never sent to third-party servers (except API providers)
+- ✅ Keys never in source code or extension bundle
+- ✅ You control your own keys
+
 ### Environment Variables
 
-The extension primarily uses a single configuration file:
-
-**`public/key.js`** (create this file):
-```javascript
-const codeKey = "YOUR_GEMINI_API_KEY_HERE";
-```
+No environment variables needed! All configuration is done through the UI on first run.
 
 ### Customizing AI Behavior
 

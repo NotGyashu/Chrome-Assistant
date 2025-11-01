@@ -1,40 +1,60 @@
-// background.js
-let conversationMemory = [];
+// Background service worker for Chrome Assistant
+// Simplified message router - all business logic moved to popup/sidepanel
 
+// Import the prompt response handler
+import { promptResponse } from '../src/utilities/promptsResponse.js';
+
+console.log('Background service worker initialized');
+
+// Handle extension installation
+chrome.runtime.onInstalled.addListener((details) => {
+  console.log('Extension event:', details.reason);
+});
+
+// Handle messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Background received message:', message.type);
+  
   switch (message.type) {
-    case "popupMounted":
-      sendResponse({ status: 200, message: "Popup ready" });
-      return true; // Important for async response
+    case 'popupMounted':
+      sendResponse({ status: 200, message: 'Popup ready' });
+      return true;
     
-    case "prompt":
-    case "gemini is dead":
+    case 'prompt':
+      // Handle AI prompt requests
       promptResponse(message.prompt)
         .then(response => {
-          chrome.runtime.sendMessage({
-            type: "stream",
-            data: response
-          });
+          console.log('Prompt response completed');
         })
         .catch(error => {
-          chrome.runtime.sendMessage({
-            type: "error",
-            message: error.message
-          });
+          console.error('Error processing prompt:', error);
         });
-      break;
-      
-    case "open_side_panel":
-    case "expand_panel":
+      return true;
+    
+    case 'open_side_panel':
+    case 'expand_panel':
       chrome.windows.getCurrent({ populate: true }, (window) => {
         chrome.sidePanel.open({
           windowId: window.id,
           tabId: window.tabs[0].id
+        }).catch(error => {
+          console.error('Error opening side panel:', error);
         });
       });
-      break;
+      return true;
+      
+    case 'ping':
+      sendResponse({ status: 'ok' });
+      return true;
+      
+    default:
+      return false;
   }
-  
-  // Return false if not handling the message
-  return false;
 });
+
+// Configure side panel behavior - disable auto-open on icon click
+// User can open side panel from popup instead
+if (chrome.sidePanel) {
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+    .catch((error) => console.error('Error setting panel behavior:', error));
+}

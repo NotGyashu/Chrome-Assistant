@@ -1,57 +1,69 @@
 import React, { useState, useEffect } from "react";
 import Prompt from "./Prompt";
+import SetupScreen from "./SetupScreen";
+import Settings from "./Settings";
 import { handleClose } from "../utilities/reactUtilities";
-import { conversationMemory } from "../../public/background";
 import { useTheme } from "./ThemeContext";
+import { areKeysConfigured, getGeminiApiKey } from "../utilities/apiKeyStorage";
+import { generateAi } from "../utilities/getAiModal";
 
 const SidePanel = () => {
   const { isDarkMode = true, toggleTheme = () => {} } = useTheme() || {};
   const [ready, setReady] = useState(false);
+  const [keysConfigured, setKeysConfigured] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [initialMessage, setInitialMessage] = useState("Loading...");
 
   useEffect(() => {
-    const handleMessageResponse = (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Extension error:", chrome.runtime.lastError);
-        setInitialMessage("Connection error");
+    checkApiKeys();
+  }, []);
+
+  const checkApiKeys = async () => {
+    try {
+      const configured = await areKeysConfigured();
+      setKeysConfigured(configured);
+      
+      if (configured) {
+        // Keys exist, initialize AI
+        await initializeAI();
+      } else {
+        // No keys, show setup screen
+        setInitialMessage("Setup required");
+      }
+    } catch (error) {
+      console.error("Error checking API keys:", error);
+      setInitialMessage("Error checking configuration");
+    }
+  };
+
+  const initializeAI = async () => {
+    try {
+      const apiKey = await getGeminiApiKey();
+      if (!apiKey) {
+        setKeysConfigured(false);
         return;
       }
-      if (response?.status === 200) {
+
+      const response = await generateAi(apiKey);
+      if (response.success) {
         setReady(true);
       } else {
-        setInitialMessage(response?.message || "Initialization failed");
+        setInitialMessage("Error initializing AI model");
+        console.error("AI initialization failed:", response.message);
       }
-    };
+    } catch (error) {
+      console.error("Error initializing AI:", error);
+      setInitialMessage("Error initializing AI model");
+    }
+  };
 
-    // Message handler for incoming messages
-    const messageListener = (message, sender, sendResponse) => {
-      if (message.type === "sidePanelReady") {
-        setReady(true);
-        sendResponse({ status: "done" });
-        return true;
-      }
-      return false;
-    };
-
-    chrome.runtime.onMessage.addListener(messageListener);
-
-    // Initialize the side panel
-    chrome.runtime.sendMessage(
-      { type: "sidePanelMounted" },
-      handleMessageResponse
-    );
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(messageListener);
-    };
-  }, []);
+  const handleSetupComplete = async () => {
+    // After setup, check keys and initialize
+    await checkApiKeys();
+  };
 
   const handleExpandPanel = async () => {
     try {
-      await chrome.storage.local.set({
-        sidePanelData: Array.isArray(conversationMemory) ? conversationMemory : []
-      });
-      
       chrome.runtime.sendMessage(
         { type: "expand_panel" },
         () => {
@@ -61,10 +73,21 @@ const SidePanel = () => {
         }
       );
     } catch (error) {
-      console.error("Storage error:", error);
+      console.error("Error expanding panel:", error);
     }
   };
 
+  // Show setup screen if keys not configured
+  if (!keysConfigured) {
+    return <SetupScreen onSetupComplete={handleSetupComplete} />;
+  }
+
+  // Show settings if requested
+  if (showSettings) {
+    return <Settings onBack={() => setShowSettings(false)} />;
+  }
+
+  // Show loading state
   if (!ready) {
     return (
       <div className={`flex justify-center items-center h-full ${
@@ -79,6 +102,7 @@ const SidePanel = () => {
     );
   }
 
+  // Show main app
   return (
     <div className={`flex flex-col h-full w-full ${
       isDarkMode 
@@ -96,6 +120,14 @@ const SidePanel = () => {
           {isDarkMode ? '☀️ Light' : '🌙 Dark'}
         </button>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            ⚙️ Settings
+          </button>
           <button
             onClick={handleExpandPanel}
             className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"

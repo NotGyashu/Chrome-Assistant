@@ -1,13 +1,15 @@
-import { conversationMemory } from "../../public/background";
+/**
+ * Utility functions for React components
+ */
 
+/**
+ * Closes the current window without clearing storage
+ * This preserves conversation history and settings
+ */
 export const handleClose = () => {
-chrome.storage.local.clear(() => {
-  console.log("All data cleared from local storage.");
-});
-
-
-window.close();
-
+  // Don't clear storage - conversation history should persist
+  console.log("Closing window (storage preserved)");
+  window.close();
 };
 
 

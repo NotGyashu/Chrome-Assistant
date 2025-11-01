@@ -1,4 +1,4 @@
-import { fetchApiKey } from "./chromeApiUtilities";
+import { getGeminiApiKey } from "./apiKeyStorage";
 
 const {
   GoogleGenerativeAI,
@@ -41,11 +41,11 @@ async function generateAi(apiKey) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     aiModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
+      model: "gemini-2.5-flash",
       generationConfig,
       safetySettings,
     });
-    // console.log("AI model initialized successfully", model);
+    console.log("AI model initialized successfully");
     return { success: true, message: "AI model initialized successfully" };
   } catch (error) {
     console.error("Error in AI generation:", error);
@@ -57,12 +57,18 @@ async function generateAi(apiKey) {
   }
 }
 
-function getAIModel() {
+async function getAIModel() {
   if (!aiModel) {
-    const apikey = fetchApiKey();
-    generateAi(apikey);
-    return aiModel;
-    
+    try {
+      const apiKey = await getGeminiApiKey();
+      if (!apiKey) {
+        throw new Error("Gemini API key not found. Please configure your API keys in settings.");
+      }
+      await generateAi(apiKey);
+    } catch (error) {
+      console.error("Error initializing AI model:", error);
+      throw error;
+    }
   }
   return aiModel;
 }
