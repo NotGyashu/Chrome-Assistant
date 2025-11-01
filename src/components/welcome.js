@@ -4,32 +4,64 @@ import { useTheme } from "./ThemeContext";
 const Welcome = () => {
   const { isDarkMode } = useTheme();
   const suggestions = [
-    "Summarize this page",
-    "Write a cover letter",
-    "Explain this concept",
-    "Help me debug this code"
+    { text: "Summarize this page", icon: "📄" },
+    { text: "Write a cover letter", icon: "✉️" },
+    { text: "Explain this concept", icon: "💡" },
+    { text: "Help me debug this code", icon: "🐛" }
   ];
 
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <div className={`text-xl font-bold ${
-        isDarkMode ? 'text-theme-dark-accent' : 'text-theme-light-primary'
-      }`}>
-        How can I help you today?
+    <div className="flex flex-col items-center justify-center gap-8 p-6 min-h-[400px] message-enter">
+      {/* Animated Halloween Header */}
+      <div className="text-center space-y-4">
+        <div className="text-6xl animate-bounce" style={{ animationDuration: '2s' }}>
+          🎃
+        </div>
+        <h1 className={`text-3xl font-bold bg-gradient-to-r ${
+          isDarkMode 
+            ? 'from-orange-500 via-purple-500 to-orange-500' 
+            : 'from-orange-600 via-purple-600 to-orange-600'
+        } bg-clip-text text-transparent animate-pulse`}>
+          Chrome Assistant
+        </h1>
+        <p className={`text-lg ${
+          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+        }`}>
+          How can I help you today?
+        </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+      {/* Suggestion Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
         {suggestions.map((suggestion, index) => (
           <div
             key={index}
-            className={`p-3 rounded-lg cursor-pointer transition-all ${
+            className={`group p-4 rounded-2xl cursor-pointer transition-all duration-300 card-halloween message-slide ${
               isDarkMode
-                ? 'bg-theme-dark-secondary hover:bg-theme-dark-primary'
-                : 'bg-blue-50 hover:bg-theme-light-primary hover:text-white'
+                ? 'hover:bg-gradient-to-br hover:from-orange-900/30 hover:to-purple-900/30'
+                : 'hover:bg-gradient-to-br hover:from-orange-100 hover:to-purple-100'
             }`}
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            {suggestion}
+            <div className="flex items-center gap-3">
+              <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                {suggestion.icon}
+              </span>
+              <span className={`font-medium ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+              }`}>
+                {suggestion.text}
+              </span>
+            </div>
           </div>
         ))}
+      </div>
+
+      {/* Decorative elements */}
+      <div className="flex gap-4 text-3xl opacity-50">
+        <span className="animate-bounce" style={{ animationDelay: '0s', animationDuration: '2s' }}>👻</span>
+        <span className="animate-bounce" style={{ animationDelay: '0.2s', animationDuration: '2s' }}>🦇</span>
+        <span className="animate-bounce" style={{ animationDelay: '0.4s', animationDuration: '2s' }}>🕷️</span>
       </div>
     </div>
   );

@@ -9,7 +9,8 @@ const {
 const generationConfig = {
   temperature: 1,
   topP: 0.95,
-  topK: 64,
+  topK: 40, // Reduced from 64 for faster generation
+  maxOutputTokens: 2048, // Add limit for faster responses
 };
 
 const safetySettings = [

@@ -98,17 +98,21 @@ const Popup = () => {
 
   // Show main app
   return (
-    <div className={`w-full h-full flex flex-col ${
+    <div className={`w-full h-full flex flex-col gradient-bg ${
       isDarkMode 
-        ? 'bg-gray-900 text-gray-100' 
-        : 'bg-white text-gray-900'
+        ? 'text-gray-100' 
+        : 'bg-gradient-to-br from-purple-50 to-orange-50 text-gray-900'
     }`}>
-      <div className={`flex justify-between items-center p-2 border-b ${
-        isDarkMode ? 'border-gray-700' : 'border-gray-200'
+      <div className={`flex justify-between items-center p-3 backdrop-blur-md border-b transition-all ${
+        isDarkMode ? 'border-purple-700/30 bg-black/20' : 'border-purple-200 bg-white/40'
       }`}>
         <button
           onClick={toggleTheme}
-          className="p-1 rounded-full hover:bg-opacity-20 hover:bg-gray-500"
+          className={`px-3 py-2 rounded-xl font-medium transition-all duration-300 glow-purple ${
+            isDarkMode 
+              ? 'bg-gradient-to-r from-purple-700 to-purple-800 text-white hover:from-purple-600 hover:to-purple-700' 
+              : 'bg-gradient-to-r from-purple-200 to-purple-300 text-purple-900 hover:from-purple-300 hover:to-purple-400'
+          }`}
           aria-label="Toggle theme"
         >
           {isDarkMode ? '☀️ Light' : '🌙 Dark'}
@@ -116,25 +120,33 @@ const Popup = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setShowSettings(true)}
-            className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"
+            className={`p-2 rounded-xl transition-all duration-300 ${
+              isDarkMode 
+                ? 'hover:bg-purple-900/50 text-purple-300' 
+                : 'hover:bg-purple-200 text-purple-700'
+            }`}
             aria-label="Open settings"
             title="Settings"
           >
-            ⚙️ Settings
+            <span className="text-xl">⚙️</span>
           </button>
           <button
             onClick={handleOpenSidePanel}
-            className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"
+            className="px-3 py-2 rounded-xl font-medium bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 transition-all duration-300 glow-orange"
             aria-label="Open side panel"
           >
             📂 Panel
           </button>
           <button
             onClick={handleClose}
-            className="p-1 rounded hover:bg-opacity-20 hover:bg-gray-500"
+            className={`p-2 rounded-xl transition-all duration-300 ${
+              isDarkMode 
+                ? 'hover:bg-red-900/50 text-red-400' 
+                : 'hover:bg-red-200 text-red-700'
+            }`}
             aria-label="Close popup"
           >
-            ✕ Close
+            <span className="text-xl">✕</span>
           </button>
         </div>
       </div>

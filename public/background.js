@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     
     case 'prompt':
-      // Handle AI prompt requests
+      // Handle AI prompt requests (async, no response needed)
       promptResponse(message.prompt)
         .then(response => {
           console.log('Prompt response completed');
@@ -29,7 +29,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch(error => {
           console.error('Error processing prompt:', error);
         });
-      return true;
+      // Return false since we don't send a response via sendResponse
+      return false;
     
     case 'open_side_panel':
     case 'expand_panel':

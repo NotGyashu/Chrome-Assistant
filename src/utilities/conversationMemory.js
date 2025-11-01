@@ -143,11 +143,13 @@ export async function getConversationContext(messageCount = 5) {
   try {
     const recentMessages = await getRecentMessages(messageCount);
     
-    // Format for Gemini chat history
-    return recentMessages.flatMap(msg => [
-      { role: 'user', parts: [{ text: msg.userMessage }] },
-      { role: 'model', parts: [{ text: msg.aiResponse }] }
-    ]);
+    // Format for Gemini chat history - filter out empty messages
+    return recentMessages
+      .filter(msg => msg.userMessage && msg.userMessage.trim() && msg.aiResponse && msg.aiResponse.trim())
+      .flatMap(msg => [
+        { role: 'user', parts: [{ text: msg.userMessage.trim() }] },
+        { role: 'model', parts: [{ text: msg.aiResponse.trim() }] }
+      ]);
   } catch (error) {
     console.error('Error getting conversation context:', error);
     return [];

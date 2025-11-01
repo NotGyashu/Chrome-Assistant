@@ -1,12 +1,11 @@
 import { getAIModel } from "./getAiModal.js";
 import { getConversationContext } from "./conversationMemory.js";
 
-// Constants
-const STREAM_END_DELAY_MS = 500; // Delay before signaling stream end to ensure all chunks are processed
-
-async function promptResponse(prompt) {
+async function promptResponse(prompt, callbacks = {}) {
+  const { onStream, onComplete, onError } = callbacks;
+  
   try {
-    const model = await getAIModel(); // await the model retrieval
+    const model = await getAIModel();
     if (!model) {
       throw new Error("AI model not initialized");
     }
@@ -15,29 +14,26 @@ async function promptResponse(prompt) {
     const conversationHistory = await getConversationContext();
     
     const chat = model.startChat({ history: conversationHistory });
-    const msg = prompt;
-
-    const result = await chat.sendMessageStream(msg);
+    const result = await chat.sendMessageStream(prompt);
 
     let fullResponse = '';
 
-    // Send each chunk as it arrives
+    // Stream each chunk
     for await (const chunk of result.stream) {
       const chunkText = await chunk.text();
       fullResponse += chunkText;
       
-      console.log("Chunk:", chunkText);
-
-      // Send each chunk to the content script
-      chrome.runtime.sendMessage({ type: "stream", data: chunkText });
+      // Call onStream callback if provided
+      if (onStream) {
+        onStream(chunkText);
+      }
     }
 
-    // Ensure the final chunk is sent before signaling end
-    setTimeout(() => {
-      chrome.runtime.sendMessage({ type: "streamEnd" });
-    }, STREAM_END_DELAY_MS);
+    // Call onComplete callback if provided
+    if (onComplete) {
+      onComplete(fullResponse);
+    }
     
-    // Return the full response for saving
     return { success: true, data: fullResponse };
    
   } catch (err) {
@@ -56,11 +52,11 @@ async function promptResponse(prompt) {
       errorMessage = `Failed to get AI response: ${err.message}`;
     }
     
-    chrome.runtime.sendMessage({ 
-      type: "error", 
-      message: errorMessage,
-      retryable: !navigator.onLine || err.status === 429
-    });
+    // Call onError callback if provided
+    if (onError) {
+      onError(errorMessage);
+    }
+    
     throw err;
   }
 }
